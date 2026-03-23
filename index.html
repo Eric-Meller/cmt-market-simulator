@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+
+<!-- Perplexity Computer Attribution — SEO Meta Tags -->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMT Market Scenario Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<style>
+:root {
+  --navy: #0B2545;
+  --teal: #13818F;
+  --light-gray: #F5F7FA;
+  --white: #FFFFFF;
+  --red: #DC3545;
+  --green: #28A745;
+  --yellow: #FFC107;
+  --orange: #FD7E14;
+  --light-green: #7BC67E;
+  --sidebar-width: 320px;
+  --topbar-height: 56px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--light-gray);
+  color: var(--navy);
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums lining-nums;
+  overflow-x: hidden;
+}
+
+/* TOP BAR */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--topbar-height);
+  background: var(--navy);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  z-index: 100;
+  gap: 16px;
+}
+.topbar h1 {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.topbar .subtitle {
+  font-size: 12px;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+.topbar .viability-badge {
+  margin-left: auto;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed;
+  top: var(--topbar-height);
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--topbar-height));
+  background: var(--white);
+  border-right: 1px solid #dde1e7;
+  overflow-y: auto;
+  padding: 20px 16px;
+  z-index: 90;
+  transition: transform 0.3s ease;
+}
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 85;
+}
+
+.slider-group {
+  margin-bottom: 20px;
+}
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+.slider-label span:first-child {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--navy);
+}
+.slider-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--teal);
+  min-width: 60px;
+  text-align: right;
+}
+.slider-hints {
+  font-size: 10px;
+  color: #6b7280;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.slider-derived {
+  font-size: 11px;
+  color: var(--teal);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e6ec;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--teal);
+  cursor: pointer;
+  border: 2px solid var(--white);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--teal);
+  cursor: pointer;
+  border: 2px solid var(--white);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* MAIN */
+.main {
+  margin-left: var(--sidebar-width);
+  margin-top: var(--topbar-height);
+  padding: 24px;
+  min-height: calc(100vh - var(--topbar-height));
+}
+
+.section {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(11,37,69,0.06);
+}
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--light-gray);
+}
+
+/* VIABILITY BANNER */
+.viability-banner {
+  padding: 20px 24px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.viability-banner .status {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.viability-banner .details {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* HEAT MAP */
+.heatmap-container {
+  position: relative;
+}
+#heatmapCanvas {
+  width: 100%;
+  cursor: crosshair;
+}
+
+/* P&L TABLE */
+.pnl-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.pnl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 900px;
+}
+.pnl-table th {
+  background: var(--navy);
+  color: var(--white);
+  padding: 8px 10px;
+  text-align: right;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pnl-table th:first-child {
+  text-align: left;
+  min-width: 130px;
+}
+.pnl-table td {
+  padding: 6px 10px;
+  text-align: right;
+  border-bottom: 1px solid #eef0f4;
+  white-space: nowrap;
+}
+.pnl-table td:first-child {
+  text-align: left;
+  font-weight: 600;
+  color: var(--navy);
+}
+.pnl-table tr:nth-child(even) {
+  background: #fafbfc;
+}
+.pnl-table .positive { color: var(--green); font-weight: 600; }
+.pnl-table .negative { color: var(--red); font-weight: 600; }
+.pnl-table .separator td {
+  border-bottom: 2px solid var(--navy);
+  font-weight: 700;
+}
+
+/* CHARTS */
+.chart-container {
+  position: relative;
+  width: 100%;
+  max-height: 400px;
+}
+
+/* SUPPLY DEMAND */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.stat-card {
+  background: var(--light-gray);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+.stat-card .stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--navy);
+}
+.stat-card .stat-label {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+.stat-card.highlight {
+  background: var(--teal);
+  color: var(--white);
+}
+.stat-card.highlight .stat-value { color: var(--white); }
+.stat-card.highlight .stat-label { color: rgba(255,255,255,0.8); }
+
+/* MANDATE TABLE */
+.mandate-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.mandate-table th {
+  background: var(--navy);
+  color: var(--white);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+.mandate-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eef0f4;
+}
+.mandate-table tr:nth-child(even) { background: #fafbfc; }
+.mandate-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.mandate-status.active { background: #d4edda; color: #155724; }
+.mandate-status.pending { background: #fff3cd; color: #856404; }
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+.footer a {
+  color: var(--teal);
+  text-decoration: none;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-overlay.open {
+    display: block;
+  }
+  .main {
+    margin-left: 0;
+  }
+  .hamburger {
+    display: block;
+  }
+  .topbar .subtitle {
+    display: none;
+  }
+  .topbar .viability-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    max-width: 110px;
+  }
+  .topbar h1 {
+    font-size: 13px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <button class="hamburger" id="hamburgerBtn">☰</button>
+  <h1>CMT Market Scenario Simulator</h1>
+  <span class="subtitle">Stress-test the economics of enzymatic PET recycling</span>
+  <div class="viability-badge" id="topViability">—</div>
+</div>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>Enzyme Cost ($/kg)</span>
+      <span class="slider-value" id="enzymeCostVal">$50</span>
+    </div>
+    <input type="range" id="enzymeCost" min="10" max="300" value="50" step="5">
+    <div class="slider-hints">$15 = NREL paper &nbsp;|&nbsp; $50 = Optimistic commercial &nbsp;|&nbsp; $150 = Pessimistic</div>
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>Enzyme Loading (mg/g PET)</span>
+      <span class="slider-value" id="enzymeLoadingVal">10</span>
+    </div>
+    <input type="range" id="enzymeLoading" min="2" max="20" value="10" step="1">
+    <div class="slider-hints">NREL assumed 5 mg/g</div>
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>Crude Oil Price ($/barrel)</span>
+      <span class="slider-value" id="oilPriceVal">$70</span>
+    </div>
+    <input type="range" id="oilPrice" min="30" max="120" value="70" step="5">
+    <div class="slider-derived" id="virginTpaDerived">→ Virgin TPA: $1,125/MT</div>
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>Recycled Content Premium ($/MT)</span>
+      <span class="slider-value" id="premiumVal">$150</span>
+    </div>
+    <input type="range" id="premium" min="0" max="700" value="150" step="25">
+    <div class="slider-hints">$0=None &nbsp;|&nbsp; $200=Moderate US &nbsp;|&nbsp; $400=Strong US &nbsp;|&nbsp; $600=EU levels</div>
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>Premium Ramp Year</span>
+      <span class="slider-value" id="premiumRampVal">2028</span>
+    </div>
+    <input type="range" id="premiumRamp" min="2026" max="2032" value="2028" step="1">
+    <div class="slider-hints">Premium ramps linearly from $0 in 2026 to full by this year</div>
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>PET Feedstock Cost ($/MT bales)</span>
+      <span class="slider-value" id="feedstockVal">$200</span>
+    </div>
+    <input type="range" id="feedstock" min="-50" max="600" value="200" step="25">
+    <div class="slider-hints">-$50=Tipping fees &nbsp;|&nbsp; $50=Current crisis &nbsp;|&nbsp; $300=Normalized &nbsp;|&nbsp; $660=NREL assumed</div>
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>Number of Plants</span>
+      <span class="slider-value" id="plantsVal">3</span>
+    </div>
+    <input type="range" id="plants" min="1" max="8" value="3" step="1">
+    <div class="slider-hints">First plant online 2029, each additional every 1.5 years</div>
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>Debt Ratio (%)</span>
+      <span class="slider-value" id="debtRatioVal">65%</span>
+    </div>
+    <input type="range" id="debtRatio" min="50" max="75" value="65" step="5">
+    <div class="slider-hints">Interest rate fixed at 7%</div>
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>Founder Ownership (%)</span>
+      <span class="slider-value" id="founderVal">32%</span>
+    </div>
+    <input type="range" id="founder" min="20" max="40" value="32" step="1">
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- Section 1: Viability Banner -->
+  <div class="viability-banner" id="viabilityBanner">
+    <div class="status" id="viabilityStatus">—</div>
+    <div class="details" id="viabilityDetails">—</div>
+  </div>
+
+  <!-- Section 2: Unit Economics Waterfall -->
+  <div class="section">
+    <div class="section-title">Unit Economics Waterfall (Single Plant, Steady State)</div>
+    <div class="chart-container">
+      <canvas id="waterfallChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Section 3: Viability Heat Map -->
+  <div class="section">
+    <div class="section-title">Viability Heat Map: Oil Price vs. Recycled Content Premium</div>
+    <div class="heatmap-container">
+      <canvas id="heatmapCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Section 4: 10-Year P&L -->
+  <div class="section">
+    <div class="section-title">10-Year P&L Projection (2027–2036)</div>
+    <div class="pnl-table-wrapper">
+      <table class="pnl-table" id="pnlTable"></table>
+    </div>
+  </div>
+
+  <!-- Section 5: Revenue & EBITDA Chart -->
+  <div class="section">
+    <div class="section-title">Revenue & EBITDA Projection</div>
+    <div class="chart-container">
+      <canvas id="revenueChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Section 6: Enzyme Break-Even -->
+  <div class="section">
+    <div class="section-title">How Enzyme Cost Affects Viability</div>
+    <div class="chart-container">
+      <canvas id="enzymeChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Section 7: Founder Equity -->
+  <div class="section">
+    <div class="section-title">Implied Founder Equity Value Over Time</div>
+    <div class="chart-container">
+      <canvas id="equityChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Section 8: Supply-Demand Context -->
+  <div class="section">
+    <div class="section-title">Supply-Demand Context</div>
+    <div class="stat-grid" id="supplyDemand"></div>
+  </div>
+
+  <!-- Section 9: Mandate Tracker -->
+  <div class="section">
+    <div class="section-title">US Recycled Content Mandate Tracker</div>
+    <div class="pnl-table-wrapper">
+      <table class="mandate-table" id="mandateTable"></table>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity Computer</a>
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// CMT Market Scenario Simulator — Core Engine
+// ============================================================
+
+const PLANT_CAPEX = 75_000_000; // $75M per plant
+const CAPACITY_PER_PLANT = 12500; // MT TPA/yr
+const EG_REVENUE_PER_PLANT = 3_900_000; // 3,900 MT * ~$1,000/MT
+const YEARS = [2027,2028,2029,2030,2031,2032,2033,2034,2035,2036];
+
+// DOM refs
+const sliders = {
+  enzymeCost: document.getElementById('enzymeCost'),
+  enzymeLoading: document.getElementById('enzymeLoading'),
+  oilPrice: document.getElementById('oilPrice'),
+  premium: document.getElementById('premium'),
+  premiumRamp: document.getElementById('premiumRamp'),
+  feedstock: document.getElementById('feedstock'),
+  plants: document.getElementById('plants'),
+  debtRatio: document.getElementById('debtRatio'),
+  founder: document.getElementById('founder'),
+};
+
+// ---- Calculation functions ----
+function getSliderValues() {
+  return {
+    enzymeCost: +sliders.enzymeCost.value,
+    enzymeLoading: +sliders.enzymeLoading.value,
+    oilPrice: +sliders.oilPrice.value,
+    premium: +sliders.premium.value,
+    premiumRamp: +sliders.premiumRamp.value,
+    feedstock: +sliders.feedstock.value,
+    plants: +sliders.plants.value,
+    debtRatio: +sliders.debtRatio.value,
+    founder: +sliders.founder.value,
+  };
+}
+
+function calcVirginTPA(oilPrice) {
+  return 600 + oilPrice * 7.5;
+}
+
+function calcPremium(year, targetPremium, rampYear) {
+  if (year <= 2026) return 0;
+  if (year >= rampYear) return targetPremium;
+  return targetPremium * (year - 2026) / (rampYear - 2026);
+}
+
+function calcProductionCost(v) {
+  const feedstockCost = v.feedstock * 1.6;
+  const enzymeCostMT = v.enzymeCost * v.enzymeLoading * 1.6; // $/kg * mg/g(=g/kg) * 1.6 kg PET/kg TPA
+  const energy = 150;
+  const labor = 175;
+  const maintenance = 100;
+  const depreciationPerMT = (PLANT_CAPEX / 20) / CAPACITY_PER_PLANT * 1000 / 1000;
+  const annualCapexCharge = (PLANT_CAPEX / 20) / CAPACITY_PER_PLANT;
+  const annualDebtService = (PLANT_CAPEX * v.debtRatio / 100 * 0.07) / CAPACITY_PER_PLANT;
+  const capitalCharges = annualCapexCharge + annualDebtService;
+  const sga = 100;
+  const costWithoutSGA = feedstockCost + enzymeCostMT + energy + labor + maintenance + capitalCharges;
+  return {
+    feedstockCost,
+    enzymeCostMT,
+    energy,
+    labor,
+    maintenance,
+    capitalCharges,
+    sga,
+    costWithoutSGA,
+    total: costWithoutSGA + sga,
+  };
+}
+
+function calcSellingPrice(oilPrice, premiumAmount) {
+  return calcVirginTPA(oilPrice) + premiumAmount;
+}
+
+function calcGrossMargin(revenue, cost) {
+  if (revenue <= 0) return -100;
+  return ((revenue - cost) / revenue) * 100;
+}
+
+// Plant deployment: first plant year 2029 (ramp), each additional every 1.5 years
+function getActivePlantCapacity(numPlants, year) {
+  let totalCapacity = 0;
+  for (let i = 0; i < numPlants; i++) {
+    const onlineYear = 2029 + i * 1.5;
+    const rampYear = onlineYear;
+    const fullYear = onlineYear + 1;
+    if (year >= fullYear) {
+      totalCapacity += CAPACITY_PER_PLANT;
+    } else if (year >= rampYear) {
+      // Fractional ramp
+      const frac = (year - rampYear) / 1;
+      totalCapacity += CAPACITY_PER_PLANT * Math.min(frac, 1) * 0.5 + (frac >= 1 ? CAPACITY_PER_PLANT * 0.5 : 0);
+      // Simplify: 50% capacity in ramp year
+      totalCapacity = totalCapacity; // already handled
+    }
+  }
+  // Recalculate properly
+  totalCapacity = 0;
+  let activePlants = 0;
+  for (let i = 0; i < numPlants; i++) {
+    const onlineYear = 2029 + i * 1.5;
+    if (year >= onlineYear + 1) {
+      totalCapacity += CAPACITY_PER_PLANT;
+      activePlants++;
+    } else if (year >= onlineYear) {
+      totalCapacity += CAPACITY_PER_PLANT * 0.5;
+      activePlants += 0.5;
+    }
+  }
+  return { totalCapacity, activePlants };
+}
+
+function calcYearlyFinancials(v, year) {
+  const { totalCapacity, activePlants } = getActivePlantCapacity(v.plants, year);
+  const prodCost = calcProductionCost(v);
+  const premiumAmt = calcPremium(year, v.premium, v.premiumRamp);
+  const sellingPrice = calcSellingPrice(v.oilPrice, premiumAmt);
+  
+  const tpaRevenue = totalCapacity * sellingPrice;
+  // EG revenue proportional to active capacity
+  const egRevenue = (totalCapacity / CAPACITY_PER_PLANT) * EG_REVENUE_PER_PLANT;
+  const totalRevenue = tpaRevenue + egRevenue;
+  const totalCOGS = totalCapacity * prodCost.costWithoutSGA;
+  const grossProfit = totalRevenue - totalCOGS;
+  const grossMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+  const sgaTotal = totalCapacity * prodCost.sga;
+  const ebitda = grossProfit - sgaTotal;
+  
+  return {
+    year,
+    activePlants,
+    totalCapacity,
+    totalRevenue,
+    totalCOGS,
+    grossProfit,
+    grossMargin,
+    sgaTotal,
+    ebitda,
+    sellingPrice,
+    prodCost: prodCost.total,
+  };
+}
+
+// ---- UI Update Functions ----
+function updateSliderDisplays(v) {
+  document.getElementById('enzymeCostVal').textContent = `$${v.enzymeCost}`;
+  document.getElementById('enzymeLoadingVal').textContent = v.enzymeLoading;
+  document.getElementById('oilPriceVal').textContent = `$${v.oilPrice}`;
+  document.getElementById('premiumVal').textContent = `$${v.premium}`;
+  document.getElementById('premiumRampVal').textContent = v.premiumRamp;
+  document.getElementById('feedstockVal').textContent = v.feedstock < 0 ? `-$${Math.abs(v.feedstock)}` : `$${v.feedstock}`;
+  document.getElementById('plantsVal').textContent = v.plants;
+  document.getElementById('debtRatioVal').textContent = `${v.debtRatio}%`;
+  document.getElementById('founderVal').textContent = `${v.founder}%`;
+  
+  const virginTPA = calcVirginTPA(v.oilPrice);
+  document.getElementById('virginTpaDerived').textContent = `→ Virgin TPA: $${Math.round(virginTPA).toLocaleString()}/MT`;
+}
+
+function updateViability(v) {
+  // Use 2030 as "current year" for steady state (first plant fully online)
+  const prodCost = calcProductionCost(v);
+  const premiumAmt = calcPremium(2030, v.premium, v.premiumRamp);
+  const sellingPrice = calcSellingPrice(v.oilPrice, premiumAmt);
+  const totalRevPerMT = sellingPrice + (EG_REVENUE_PER_PLANT / CAPACITY_PER_PLANT);
+  const gm = ((totalRevPerMT - prodCost.costWithoutSGA) / totalRevPerMT) * 100;
+  
+  const banner = document.getElementById('viabilityBanner');
+  const status = document.getElementById('viabilityStatus');
+  const details = document.getElementById('viabilityDetails');
+  const badge = document.getElementById('topViability');
+  
+  if (gm > 25) {
+    banner.style.background = 'linear-gradient(135deg, #28A745 0%, #20c997 100%)';
+    banner.style.color = '#fff';
+    status.textContent = '✓ STRONGLY VIABLE';
+    badge.style.background = '#28A745';
+    badge.style.color = '#fff';
+    badge.textContent = '✓ VIABLE';
+  } else if (gm >= 10) {
+    banner.style.background = 'linear-gradient(135deg, #FFC107 0%, #FFD54F 100%)';
+    banner.style.color = '#333';
+    status.textContent = '⚠ VIABLE BUT TIGHT';
+    badge.style.background = '#FFC107';
+    badge.style.color = '#333';
+    badge.textContent = '⚠ TIGHT';
+  } else {
+    banner.style.background = 'linear-gradient(135deg, #DC3545 0%, #e57373 100%)';
+    banner.style.color = '#fff';
+    status.textContent = '✗ NOT VIABLE';
+    badge.style.background = '#DC3545';
+    badge.style.color = '#fff';
+    badge.textContent = '✗ NOT VIABLE';
+  }
+  
+  details.textContent = `Gross Margin: ${gm.toFixed(1)}%  |  COGS: $${Math.round(prodCost.costWithoutSGA).toLocaleString()}/MT  |  Revenue/MT: $${Math.round(totalRevPerMT).toLocaleString()}/MT`;
+}
+
+// ---- WATERFALL CHART ----
+let waterfallChart = null;
+function updateWaterfallChart(v) {
+  const pc = calcProductionCost(v);
+  const premiumAmt = calcPremium(2030, v.premium, v.premiumRamp);
+  const sellingPrice = calcSellingPrice(v.oilPrice, premiumAmt);
+  
+  const components = [
+    { label: 'Feedstock', value: pc.feedstockCost },
+    { label: 'Enzyme', value: pc.enzymeCostMT },
+    { label: 'Energy', value: pc.energy },
+    { label: 'Labor', value: pc.labor },
+    { label: 'Maintenance', value: pc.maintenance },
+    { label: 'Capital Charges', value: pc.capitalCharges },
+    { label: 'SG&A', value: pc.sga },
+  ];
+  
+  const labels = components.map(c => c.label).concat(['Total Cost', 'Selling Price', 'Margin']);
+  const totalCost = pc.total;
+  const margin = sellingPrice - totalCost;
+  
+  // Build waterfall data
+  const data = components.map(c => c.value);
+  data.push(totalCost);
+  data.push(sellingPrice);
+  data.push(margin);
+  
+  const bgColors = components.map(() => '#3a7bd5')
+    .concat([
+      'var(--navy)',
+      '#13818F',
+      margin >= 0 ? '#28A745' : '#DC3545'
+    ]);
+  
+  const bgColorsActual = components.map(() => '#3a7bd5')
+    .concat([
+      '#0B2545',
+      '#13818F',
+      margin >= 0 ? '#28A745' : '#DC3545'
+    ]);
+
+  const ctx = document.getElementById('waterfallChart').getContext('2d');
+  if (waterfallChart) waterfallChart.destroy();
+  
+  waterfallChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '$/MT TPA',
+        data,
+        backgroundColor: bgColorsActual,
+        borderRadius: 4,
+        barPercentage: 0.7,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `$${Math.round(ctx.raw).toLocaleString()}/MT`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: '$/MT TPA', font: { size: 12, weight: '600' } },
+          ticks: { callback: v => `$${v.toLocaleString()}` },
+          grid: { color: '#eef0f4' }
+        },
+        x: {
+          ticks: { font: { size: 11 } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ---- HEAT MAP ----
+function drawHeatMap(v) {
+  const canvas = document.getElementById('heatmapCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  const oilValues = [];
+  for (let o = 30; o <= 120; o += 10) oilValues.push(o);
+  const premiumValues = [];
+  for (let p = 0; p <= 600; p += 50) premiumValues.push(p);
+  premiumValues.reverse(); // top to bottom: high to low
+  
+  const cols = oilValues.length;
+  const rows = premiumValues.length;
+  
+  const marginLeft = 85;
+  const marginBottom = 50;
+  const marginTop = 20;
+  const marginRight = 30;
+  
+  const dpr = window.devicePixelRatio || 1;
+  const displayWidth = canvas.parentElement.clientWidth;
+  const displayHeight = Math.max(360, rows * 30 + marginTop + marginBottom);
+  
+  canvas.width = displayWidth * dpr;
+  canvas.height = displayHeight * dpr;
+  canvas.style.width = displayWidth + 'px';
+  canvas.style.height = displayHeight + 'px';
+  ctx.scale(dpr, dpr);
+  
+  const chartWidth = displayWidth - marginLeft - marginRight;
+  const chartHeight = displayHeight - marginTop - marginBottom;
+  const cellW = chartWidth / cols;
+  const cellH = chartHeight / rows;
+  
+  // Draw cells
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const oil = oilValues[c];
+      const prem = premiumValues[r];
+      
+      // Calc GM at these values, using 2030 steady state
+      const tempV = { ...v, oilPrice: oil, premium: prem };
+      const pc = calcProductionCost(tempV);
+      const premAmt = calcPremium(2030, prem, v.premiumRamp);
+      const sp = calcSellingPrice(oil, premAmt);
+      const totalRevPerMT = sp + (EG_REVENUE_PER_PLANT / CAPACITY_PER_PLANT);
+      const gm = ((totalRevPerMT - pc.costWithoutSGA) / totalRevPerMT) * 100;
+      
+      let color;
+      if (gm > 30) color = '#28A745';
+      else if (gm > 20) color = '#7BC67E';
+      else if (gm > 10) color = '#FFC107';
+      else if (gm > 0) color = '#FD7E14';
+      else color = '#DC3545';
+      
+      const x = marginLeft + c * cellW;
+      const y = marginTop + r * cellH;
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, cellW - 1, cellH - 1);
+      
+      // Draw margin value in cell
+      ctx.fillStyle = gm > 20 ? '#fff' : (gm > 0 ? '#333' : '#fff');
+      ctx.font = `600 ${Math.min(11, cellW/4)}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${Math.round(gm)}%`, x + cellW/2, y + cellH/2);
+    }
+  }
+  
+  // Mark current position
+  const curOilIdx = oilValues.indexOf(v.oilPrice);
+  const curPremIdx = premiumValues.indexOf(v.premium);
+  if (curOilIdx >= 0 && curPremIdx >= 0) {
+    const cx = marginLeft + curOilIdx * cellW + cellW/2;
+    const cy = marginTop + curPremIdx * cellH + cellH/2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.min(cellW, cellH) / 3, 0, Math.PI * 2);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.min(cellW, cellH) / 3, 0, Math.PI * 2);
+    ctx.strokeStyle = '#0B2545';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  
+  // X-axis labels
+  ctx.fillStyle = '#0B2545';
+  ctx.font = '600 11px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let c = 0; c < cols; c++) {
+    ctx.fillText(`$${oilValues[c]}`, marginLeft + c * cellW + cellW/2, marginTop + chartHeight + 6);
+  }
+  ctx.font = '600 12px Inter, sans-serif';
+  ctx.fillText('Crude Oil Price ($/barrel)', marginLeft + chartWidth/2, marginTop + chartHeight + 26);
+  
+  // Y-axis labels
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.font = '600 11px Inter, sans-serif';
+  for (let r = 0; r < rows; r++) {
+    ctx.fillText(`$${premiumValues[r]}`, marginLeft - 8, marginTop + r * cellH + cellH/2);
+  }
+  ctx.save();
+  ctx.translate(14, marginTop + chartHeight/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign = 'center';
+  ctx.font = '600 12px Inter, sans-serif';
+  ctx.fillText('Premium ($/MT)', 0, 0);
+  ctx.restore();
+}
+
+// ---- P&L TABLE ----
+function updatePnLTable(v) {
+  const yearData = YEARS.map(y => calcYearlyFinancials(v, y));
+  
+  const fmt = (val) => {
+    const m = val / 1_000_000;
+    if (Math.abs(m) < 0.05) return '$0.0M';
+    return `$${m.toFixed(1)}M`;
+  };
+  const fmtClass = (val) => val >= 0 ? 'positive' : 'negative';
+  
+  let html = '<thead><tr><th>Metric</th>';
+  YEARS.forEach(y => html += `<th>${y}</th>`);
+  html += '</tr></thead><tbody>';
+  
+  // Active Plants
+  html += '<tr><td>Active Plants</td>';
+  yearData.forEach(d => html += `<td>${d.activePlants.toFixed(1)}</td>`);
+  html += '</tr>';
+  
+  // Capacity
+  html += '<tr><td>Capacity (MT TPA/yr)</td>';
+  yearData.forEach(d => html += `<td>${d.totalCapacity.toLocaleString()}</td>`);
+  html += '</tr>';
+  
+  // Revenue
+  html += '<tr><td>Revenue ($M)</td>';
+  yearData.forEach(d => html += `<td class="${fmtClass(d.totalRevenue)}">${fmt(d.totalRevenue)}</td>`);
+  html += '</tr>';
+  
+  // COGS
+  html += '<tr><td>COGS ($M)</td>';
+  yearData.forEach(d => html += `<td>${fmt(d.totalCOGS)}</td>`);
+  html += '</tr>';
+  
+  // Gross Profit
+  html += '<tr class="separator"><td>Gross Profit ($M)</td>';
+  yearData.forEach(d => html += `<td class="${fmtClass(d.grossProfit)}">${fmt(d.grossProfit)}</td>`);
+  html += '</tr>';
+  
+  // Gross Margin
+  html += '<tr><td>Gross Margin %</td>';
+  yearData.forEach(d => html += `<td class="${d.grossMargin >= 10 ? 'positive' : 'negative'}">${d.grossMargin.toFixed(1)}%</td>`);
+  html += '</tr>';
+  
+  // SG&A
+  html += '<tr><td>SG&A ($M)</td>';
+  yearData.forEach(d => html += `<td>${fmt(d.sgaTotal)}</td>`);
+  html += '</tr>';
+  
+  // EBITDA
+  html += '<tr class="separator"><td>EBITDA ($M)</td>';
+  yearData.forEach(d => html += `<td class="${fmtClass(d.ebitda)}">${fmt(d.ebitda)}</td>`);
+  html += '</tr>';
+  
+  html += '</tbody>';
+  document.getElementById('pnlTable').innerHTML = html;
+}
+
+// ---- REVENUE & EBITDA CHART ----
+let revenueChart = null;
+function updateRevenueChart(v) {
+  const yearData = YEARS.map(y => calcYearlyFinancials(v, y));
+  
+  const ctx = document.getElementById('revenueChart').getContext('2d');
+  if (revenueChart) revenueChart.destroy();
+  
+  revenueChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: YEARS,
+      datasets: [
+        {
+          label: 'Revenue ($M)',
+          data: yearData.map(d => +(d.totalRevenue / 1e6).toFixed(1)),
+          backgroundColor: '#13818F',
+          borderRadius: 4,
+          barPercentage: 0.8,
+          categoryPercentage: 0.7,
+        },
+        {
+          label: 'EBITDA ($M)',
+          data: yearData.map(d => +(d.ebitda / 1e6).toFixed(1)),
+          backgroundColor: yearData.map(d => d.ebitda >= 0 ? '#0B2545' : '#DC3545'),
+          borderRadius: 4,
+          barPercentage: 0.8,
+          categoryPercentage: 0.7,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { font: { size: 12, weight: '600' }, usePointStyle: true, pointStyle: 'rectRounded' }
+        },
+        tooltip: {
+          callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.raw.toFixed(1)}M` }
+        }
+      },
+      scales: {
+        y: {
+          title: { display: true, text: '$ Millions', font: { size: 12, weight: '600' } },
+          ticks: { callback: v => `$${v}M` },
+          grid: { color: '#eef0f4' }
+        },
+        x: {
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ---- ENZYME BREAK-EVEN CHART ----
+let enzymeChart = null;
+function updateEnzymeChart(v) {
+  const enzymeCosts = [];
+  const margins = [];
+  for (let ec = 10; ec <= 300; ec += 5) {
+    enzymeCosts.push(ec);
+    const tempV = { ...v, enzymeCost: ec };
+    const pc = calcProductionCost(tempV);
+    const premAmt = calcPremium(2030, v.premium, v.premiumRamp);
+    const sp = calcSellingPrice(v.oilPrice, premAmt);
+    const totalRevPerMT = sp + (EG_REVENUE_PER_PLANT / CAPACITY_PER_PLANT);
+    const gm = ((totalRevPerMT - pc.costWithoutSGA) / totalRevPerMT) * 100;
+    margins.push(gm);
+  }
+  
+  const ctx = document.getElementById('enzymeChart').getContext('2d');
+  if (enzymeChart) enzymeChart.destroy();
+  
+  enzymeChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: enzymeCosts,
+      datasets: [{
+        label: 'Gross Margin %',
+        data: margins,
+        borderColor: '#13818F',
+        backgroundColor: 'rgba(19,129,143,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHitRadius: 10,
+        borderWidth: 2.5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => `Enzyme: $${items[0].label}/kg`,
+            label: ctx => `Gross Margin: ${ctx.raw.toFixed(1)}%`
+          }
+        },
+        annotation: undefined
+      },
+      scales: {
+        y: {
+          title: { display: true, text: 'Gross Margin %', font: { size: 12, weight: '600' } },
+          ticks: { callback: v => `${v}%` },
+          grid: { color: '#eef0f4' }
+        },
+        x: {
+          title: { display: true, text: 'Enzyme Cost ($/kg)', font: { size: 12, weight: '600' } },
+          ticks: {
+            callback: function(value, index) {
+              const v = this.getLabelForValue(value);
+              return index % 6 === 0 ? `$${v}` : '';
+            }
+          },
+          grid: { display: false }
+        }
+      }
+    },
+    plugins: [{
+      id: 'referenceLines',
+      afterDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const yScale = scales.y;
+        const xScale = scales.x;
+        
+        // Horizontal reference lines
+        [0, 15, 30].forEach(val => {
+          const y = yScale.getPixelForValue(val);
+          if (y >= chartArea.top && y <= chartArea.bottom) {
+            ctx.save();
+            ctx.strokeStyle = val === 0 ? '#DC3545' : '#adb5bd';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(chartArea.left, y);
+            ctx.lineTo(chartArea.right, y);
+            ctx.stroke();
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '600 10px Inter, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`${val}%`, chartArea.right + 4, y + 3);
+            ctx.restore();
+          }
+        });
+        
+        // Vertical line at current enzyme cost
+        const currentEC = +document.getElementById('enzymeCost').value;
+        const ecIdx = chart.data.labels.indexOf(currentEC);
+        if (ecIdx >= 0) {
+          const x = xScale.getPixelForValue(ecIdx);
+          ctx.save();
+          ctx.strokeStyle = '#0B2545';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath();
+          ctx.moveTo(x, chartArea.top);
+          ctx.lineTo(x, chartArea.bottom);
+          ctx.stroke();
+          ctx.fillStyle = '#0B2545';
+          ctx.font = '700 11px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(`Current: $${currentEC}/kg`, x, chartArea.top - 6);
+          ctx.restore();
+        }
+      }
+    }]
+  });
+}
+
+// ---- FOUNDER EQUITY CHART ----
+let equityChart = null;
+function updateEquityChart(v) {
+  const yearData = YEARS.map(y => calcYearlyFinancials(v, y));
+  const equityValues = yearData.map(d => {
+    const ev = d.ebitda * 10;
+    return Math.max(0, ev * v.founder / 100 / 1e6);
+  });
+  
+  const ctx = document.getElementById('equityChart').getContext('2d');
+  if (equityChart) equityChart.destroy();
+  
+  equityChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: YEARS,
+      datasets: [{
+        label: 'Founder Equity Value ($M)',
+        data: equityValues,
+        borderColor: '#0B2545',
+        backgroundColor: 'rgba(11,37,69,0.08)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: '#0B2545',
+        borderWidth: 2.5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `$${ctx.raw.toFixed(1)}M`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: '$ Millions', font: { size: 12, weight: '600' } },
+          ticks: { callback: v => `$${v}M` },
+          grid: { color: '#eef0f4' }
+        },
+        x: {
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ---- SUPPLY-DEMAND PANEL ----
+function updateSupplyDemand(v) {
+  const cmtCapacity = v.plants * CAPACITY_PER_PLANT;
+  const gapMT = 4_000_000;
+  const pctGap = (cmtCapacity / gapMT * 100).toFixed(2);
+  
+  document.getElementById('supplyDemand').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-value">6.5M</div>
+      <div class="stat-label">MT/yr US PET Waste Generated</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">2.0M</div>
+      <div class="stat-label">MT/yr Currently Recycled</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">~6.0M</div>
+      <div class="stat-label">MT/yr Projected rPET Demand by 2030 (McKinsey)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">~2.0M</div>
+      <div class="stat-label">MT/yr Current rPET Supply</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-value">~4.0M</div>
+      <div class="stat-label">MT/yr UNMET DEMAND GAP</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-value">${cmtCapacity.toLocaleString()}</div>
+      <div class="stat-label">MT/yr CMT Contribution (${v.plants} plants) = ${pctGap}% of gap</div>
+    </div>
+  `;
+}
+
+// ---- MANDATE TABLE ----
+function renderMandateTable() {
+  const mandates = [
+    ['California', 'AB 793', '25% by 2025, 50% by 2030', 'Active'],
+    ['California', 'SB 54', '30% recycling rate 2028, 40% 2030, 65% 2032', 'Active'],
+    ['Washington', 'HB 1131', '15% by 2025, 25% by 2028, 50% by 2031', 'Active'],
+    ['Oregon', 'SB 582', 'Program active July 2025', 'Active'],
+    ['Colorado', 'HB 22-1355', 'Program started Jan 2026, targets pending', 'Active'],
+    ['Maine', 'LD 1541', 'Municipal reimbursement model', 'Active'],
+    ['Maryland', 'SB 222', 'Targets pending', 'Active'],
+    ['10+ states', 'Various bills', 'Under consideration in 2026', 'Pending'],
+  ];
+  
+  let html = '<thead><tr><th>State</th><th>Law</th><th>PET Recycled Content Requirement</th><th>Status</th></tr></thead><tbody>';
+  mandates.forEach(([state, law, req, status]) => {
+    const cls = status === 'Active' ? 'active' : 'pending';
+    html += `<tr><td>${state}</td><td>${law}</td><td>${req}</td><td><span class="mandate-status ${cls}">${status}</span></td></tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('mandateTable').innerHTML = html;
+}
+
+// ---- MASTER UPDATE ----
+let updateTimer = null;
+function scheduleUpdate() {
+  if (updateTimer) clearTimeout(updateTimer);
+  updateTimer = setTimeout(updateAll, 50);
+}
+
+function updateAll() {
+  const v = getSliderValues();
+  updateSliderDisplays(v);
+  updateViability(v);
+  updateWaterfallChart(v);
+  drawHeatMap(v);
+  updatePnLTable(v);
+  updateRevenueChart(v);
+  updateEnzymeChart(v);
+  updateEquityChart(v);
+  updateSupplyDemand(v);
+}
+
+// ---- EVENT LISTENERS ----
+Object.values(sliders).forEach(slider => {
+  slider.addEventListener('input', scheduleUpdate);
+});
+
+// Mobile sidebar
+document.getElementById('hamburgerBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+});
+document.getElementById('sidebarOverlay').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+});
+
+// Handle resize for heatmap
+window.addEventListener('resize', () => {
+  if (updateTimer) clearTimeout(updateTimer);
+  updateTimer = setTimeout(updateAll, 100);
+});
+
+// ---- INIT ----
+renderMandateTable();
+updateAll();
+</script>
+</body>
+</html>
