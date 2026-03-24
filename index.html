@@ -474,13 +474,7 @@ input[type="range"]::-moz-range-thumb {
     <div class="slider-hints">Interest rate fixed at 7%</div>
   </div>
 
-  <div class="slider-group">
-    <div class="slider-label">
-      <span>Founder Ownership (%)</span>
-      <span class="slider-value" id="founderVal">32%</span>
-    </div>
-    <input type="range" id="founder" min="20" max="40" value="32" step="1">
-  </div>
+
 </aside>
 
 <!-- MAIN CONTENT -->
@@ -532,13 +526,7 @@ input[type="range"]::-moz-range-thumb {
     </div>
   </div>
 
-  <!-- Section 7: Founder Equity -->
-  <div class="section">
-    <div class="section-title">Implied Founder Equity Value Over Time</div>
-    <div class="chart-container">
-      <canvas id="equityChart"></canvas>
-    </div>
-  </div>
+
 
   <!-- Section 8: Supply-Demand Context -->
   <div class="section">
@@ -579,7 +567,7 @@ const sliders = {
   feedstock: document.getElementById('feedstock'),
   plants: document.getElementById('plants'),
   debtRatio: document.getElementById('debtRatio'),
-  founder: document.getElementById('founder'),
+
 };
 
 // ---- Calculation functions ----
@@ -593,7 +581,7 @@ function getSliderValues() {
     feedstock: +sliders.feedstock.value,
     plants: +sliders.plants.value,
     debtRatio: +sliders.debtRatio.value,
-    founder: +sliders.founder.value,
+
   };
 }
 
@@ -715,7 +703,7 @@ function updateSliderDisplays(v) {
   document.getElementById('feedstockVal').textContent = v.feedstock < 0 ? `-$${Math.abs(v.feedstock)}` : `$${v.feedstock}`;
   document.getElementById('plantsVal').textContent = v.plants;
   document.getElementById('debtRatioVal').textContent = `${v.debtRatio}%`;
-  document.getElementById('founderVal').textContent = `${v.founder}%`;
+
   
   const virginTPA = calcVirginTPA(v.oilPrice);
   document.getElementById('virginTpaDerived').textContent = `→ Virgin TPA: $${Math.round(virginTPA).toLocaleString()}/MT`;
@@ -1320,7 +1308,6 @@ function updateAll() {
   updatePnLTable(v);
   updateRevenueChart(v);
   updateEnzymeChart(v);
-  updateEquityChart(v);
   updateSupplyDemand(v);
 }
 
